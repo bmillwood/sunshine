@@ -31,12 +31,7 @@ init : (Model, Cmd Msg)
 init =
   let
       initCell i j =
-        let
-            a = toFloat (i + j)
-            x = sin a
-            y = cos a
-        in
-        Array.fromList [x, y, -x]
+        Array.fromList [0, 0, 0]
   in
   ( { cells =
         Dict.fromList (
@@ -57,7 +52,7 @@ boostCell : Time -> Cell -> Cell
 boostCell timeStep cell =
   Array.set
     0
-    (Maybe.withDefault 0 (Array.get 0 cell) + timeStep)
+    (Maybe.withDefault 0 (Array.get 0 cell) + 5 * timeStep)
     cell
 
 applyMouse : Time -> Model -> Model
@@ -66,6 +61,19 @@ applyMouse timeStep model =
     Nothing -> model
     Just (i, j) ->
       { model | cells = Dict.update (i, j) (Maybe.map (boostCell timeStep)) model.cells }
+
+average : List Float -> Maybe Float
+average floats =
+  if List.isEmpty floats
+  then Nothing
+  else
+    let
+        (total, length) = List.foldl (\x (t, l) -> (t + x, l + 1)) (0, 0) floats
+    in
+    Just (total / length)
+
+neighbourCoords : (Int, Int) -> List (Int, Int)
+neighbourCoords (i, j) = [(i - 1, j), (i + 1, j), (i, j - 1), (i, j + 1)]
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -80,7 +88,16 @@ update msg model =
                 case Array.get (o + 1) cell of
                   Just dx -> min 1 (max (-1) (x + timeStep * dx))
                   Nothing ->
-                    negate (Maybe.withDefault 0 (Array.get 0 cell))
+                    let
+                        neighbourValues =
+                          List.filterMap
+                            (\p ->
+                              Dict.get p model.cells
+                              |> Maybe.andThen (Array.get 0)
+                            )
+                            ((i,j) :: (i,j) :: (i,j) :: (i,j) :: neighbourCoords (i,j))
+                    in
+                    negate (Maybe.withDefault 0 (average neighbourValues))
               )
               cell
       in
