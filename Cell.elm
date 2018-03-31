@@ -1,13 +1,20 @@
-module Cell exposing (Cell, init, boost, value, step)
+module Cell exposing (Cell, Msg, init, boost, value, step, msg)
 
 import Array exposing (Array)
-import Maybe exposing (Maybe)
+import Random
 import Time exposing (Time)
+
+import Shared exposing (..)
 
 type Cell = C (Array Float)
 
-init : Int -> Int -> Cell
-init i j = C (Array.fromList [0, 0, 0])
+type Msg = SetRand Float
+
+init : Pt -> (Cell, Cmd Msg)
+init (_, _) =
+  ( C (Array.fromList [0, 0, 0])
+  , Random.generate SetRand (Random.float (-1) 1)
+  )
 
 boost : Time -> Cell -> Cell
 boost timeStep (C ar) =
@@ -20,7 +27,7 @@ boost timeStep (C ar) =
 value : Cell -> Float
 value (C ar) = 0.5 * (Maybe.withDefault 0 (Array.get 0 ar) + 1)
 
-weights : List ((Int, Int), Float)
+weights : List (Pt, Float)
 weights =
   [ (( 0,  0), 4)
   , ((-1,  0), 1)
@@ -46,26 +53,31 @@ weightedAverage xs =
       in
       Just (total.value / total.weight)
 
-step : { timeStep : Time } -> ((Int, Int) -> Maybe Cell) -> Cell -> Cell
+step : { timeStep : Time } -> (Pt -> Maybe Cell) -> Cell -> (Cell, Cmd Msg)
 step { timeStep } getNeighbour (C ar) =
   let
       clamp x = min 1 (max (-1) x)
   in
-  Array.indexedMap (\o x ->
-      case Array.get (o + 1) ar of
-        Just dx -> clamp (x + timeStep * dx)
-        Nothing ->
-          List.filterMap
-            (\(p, weight) ->
-              getNeighbour p
-              |> Maybe.andThen (\(C a) -> Array.get 0 a)
-              |> Maybe.map (\value -> { weight = weight, value = value })
-            )
-            weights
-          |> weightedAverage
-          |> Maybe.withDefault 0
-          |> negate
-          |> clamp
-    )
-    ar
-  |> C
+  ( Array.indexedMap (\o x ->
+        case Array.get (o + 1) ar of
+          Just dx -> clamp (x + timeStep * dx)
+          Nothing ->
+            List.filterMap
+              (\(p, weight) ->
+                getNeighbour p
+                |> Maybe.andThen (\(C a) -> Array.get 0 a)
+                |> Maybe.map (\value -> { weight = weight, value = value })
+              )
+              weights
+            |> weightedAverage
+            |> Maybe.withDefault 0
+            |> negate
+            |> clamp
+      )
+      ar
+    |> C
+  , Cmd.none
+  )
+
+msg : Msg -> Cell -> (Cell, Cmd Msg)
+msg (SetRand r) (C ar) = (C (Array.set 0 r ar), Cmd.none)

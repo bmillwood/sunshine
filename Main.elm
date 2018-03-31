@@ -1,8 +1,6 @@
 module Main exposing (main)
 
 import Dict exposing (Dict)
-import List
-import Maybe exposing (Maybe)
 import Time exposing (Time)
 
 import AnimationFrame
@@ -13,34 +11,46 @@ import Svg.Attributes
 import Svg.Events
 
 import Cell exposing (Cell)
+import Shared exposing (..)
 
 type Msg =
     Tick Time
-  | Moused Bool Int Int
+  | Moused Bool Pt
+  | Cell Pt Cell.Msg
 
 type alias Model =
-  { cells    : Dict (Int, Int) Cell
-  , moused   : Maybe (Int, Int)
+  { cells  : Dict Pt Cell
+  , moused : Maybe Pt
   }
 
 squaresWide = 16
 squaresHigh = 16
 
+splitCellsCmds : Dict Pt (Cell, Cmd Cell.Msg) -> (Dict Pt Cell, Cmd Msg)
+splitCellsCmds cells =
+  ( Dict.map (\_ (cell, _) -> cell) cells
+  , List.map (\(pt, (_, cmd)) -> Cmd.map (\r -> Cell pt r) cmd) (Dict.toList cells)
+    |> Cmd.batch
+  )
+
 init : (Model, Cmd Msg)
 init =
-  ( { cells =
-        Dict.fromList (
-          List.concatMap (\i ->
-              List.concatMap (\j ->
-                  [((i,j), Cell.init i j)]
-                )
-                (List.range 0 (squaresWide - 1))
-            )
-            (List.range 0 (squaresHigh - 1))
-        )
+  let
+      (cells, cmd) =
+        List.concatMap (\i ->
+            List.concatMap (\j ->
+                [((i,j), Cell.init (i, j))]
+              )
+              (List.range 0 (squaresWide - 1))
+          )
+          (List.range 0 (squaresHigh - 1))
+        |> Dict.fromList
+        |> splitCellsCmds
+  in
+  ( { cells = cells
     , moused = Nothing
     }
-  , Cmd.none
+  , cmd
   )
 
 applyMouse : Time -> Model -> Model
@@ -63,11 +73,12 @@ update msg model =
               { timeStep = timeStep }
               (\(di, dj) -> Dict.get (i + di, j + dj) model.cells)
               cell
+          (newCells, cmd) = splitCellsCmds (Dict.map stepCell model.cells)
       in
-      ( applyMouse timeStep { model | cells = Dict.map stepCell model.cells }
-      , Cmd.none
+      ( applyMouse timeStep { model | cells = newCells }
+      , cmd
       )
-    Moused isMoused i j ->
+    Moused isMoused (i, j) ->
       ( if isMoused
         then { model | moused = Just (i, j) }
         else
@@ -79,6 +90,16 @@ update msg model =
               else model
       , Cmd.none
       )
+    Cell pt cellMsg ->
+      case Dict.get pt model.cells of
+        Nothing -> (model, Cmd.none)
+        Just cell ->
+          let
+              (newCell, cmd) = Cell.msg cellMsg cell
+          in
+          ( { model | cells = Dict.insert pt newCell model.cells }
+          , Cmd.map (\r -> Cell pt r) cmd
+          )
 
 view : Model -> Html Msg
 view { cells } =
@@ -103,8 +124,8 @@ view { cells } =
           , Svg.Attributes.x      (toString (j * squareSize))
           , Svg.Attributes.y      (toString (i * squareSize))
           , Svg.Attributes.fill   (toColour cell)
-          , Svg.Events.onMouseOver (Moused True  i j)
-          , Svg.Events.onMouseOut  (Moused False i j)
+          , Svg.Events.onMouseOver (Moused True  (i, j))
+          , Svg.Events.onMouseOut  (Moused False (i, j))
           ]
           []
   in
