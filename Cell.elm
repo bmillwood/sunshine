@@ -55,12 +55,9 @@ weightedAverage xs =
 
 step : { timeStep : Time } -> (Pt -> Maybe Cell) -> Cell -> (Cell, Cmd Msg)
 step { timeStep } getNeighbour (C ar) =
-  let
-      clamp x = min 1 (max (-1) x)
-  in
   ( Array.indexedMap (\o x ->
         case Array.get (o + 1) ar of
-          Just dx -> clamp (x + timeStep * dx)
+          Just dx -> clamp (-1) 1 (x + timeStep * dx)
           Nothing ->
             List.filterMap
               (\(p, weight) ->
@@ -72,7 +69,7 @@ step { timeStep } getNeighbour (C ar) =
             |> weightedAverage
             |> Maybe.withDefault 0
             |> negate
-            |> clamp
+            |> clamp (-1) 1
       )
       ar
     |> C
