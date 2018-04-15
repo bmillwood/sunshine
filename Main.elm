@@ -10,7 +10,7 @@ import Svg
 import Svg.Attributes
 import Svg.Events
 
-import Cell.PhaseSync as Cell exposing (Cell)
+import Cell.Template as Cell exposing (Cell)
 import Shared exposing (..)
 
 type Msg =
