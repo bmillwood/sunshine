@@ -1,4 +1,4 @@
-module Cell exposing (Cell, Msg, init, boost, value, step, msg)
+module Cell.Integrator exposing (Cell, Msg, init, boost, value, step, msg)
 
 import Array exposing (Array)
 import Random
