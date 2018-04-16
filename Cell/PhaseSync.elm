@@ -16,8 +16,8 @@ init (_, _) =
   , Random.generate SetPhase (Random.float (negate pi) pi)
   )
 
-boost : Time -> Cell -> Cell
-boost timeStep (C cell) =
+boost : { timeStep : Time } -> Cell -> Cell
+boost { timeStep } (C cell) =
   C { cell | phase = cell.phase - 5 * timeStep }
 
 value : Cell -> Float

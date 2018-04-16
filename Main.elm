@@ -58,7 +58,9 @@ applyMouse timeStep model =
   case model.moused of
     Nothing -> model
     Just (i, j) ->
-      { model | cells = Dict.update (i, j) (Maybe.map (Cell.boost timeStep)) model.cells }
+      { model
+      | cells = Dict.update (i, j) (Maybe.map (Cell.boost { timeStep = timeStep })) model.cells
+      }
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =

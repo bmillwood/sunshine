@@ -8,10 +8,13 @@ type Cell = C
 type Msg = M
 
 init : Pt -> (Cell, Cmd Msg)
-init (_, _) = (C, Cmd.none)
+init (_, _) =
+  ( C
+  , Cmd.none
+  )
 
-boost : Time -> Cell -> Cell
-boost _ C = C
+boost : { timeStep : Time } -> Cell -> Cell
+boost { timeStep } C = C
 
 value : Cell -> Float
 value C = 0.5

@@ -16,8 +16,8 @@ init (_, _) =
   , Random.generate SetRand (Random.float (-1) 1)
   )
 
-boost : Time -> Cell -> Cell
-boost timeStep (C ar) =
+boost : { timeStep : Time } -> Cell -> Cell
+boost { timeStep } (C ar) =
   Array.set
     0
     (Maybe.withDefault 0 (Array.get 0 ar) + 5 * timeStep)
