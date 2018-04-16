@@ -69,8 +69,8 @@ update msg model =
   case msg of
     Tick rawTimeStep ->
       let
-          maxSkip = 1
-          timeScale = 0.01
+          maxSkip = 0.1 * Time.second
+          timeScale = 0.001
           timeStep = timeScale * min rawTimeStep maxSkip
           stepCell (i,j) cell =
             Cell.step
