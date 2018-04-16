@@ -4,7 +4,7 @@ import Array exposing (Array)
 import Random
 import Time exposing (Time)
 
-import Shared exposing (..)
+import Vector exposing (Pt)
 
 type Cell = C { time : Time, phase : Float }
 
@@ -32,36 +32,6 @@ weights =
   , (( 0,  1),   1)
   ]
 
-type alias VectorSpace vector =
-  { add   : vector -> vector -> vector
-  , zero  : vector
-  , scale : Float  -> vector -> vector
-  }
-
-weightedAverage : VectorSpace v -> List { weight : Float, value : v } -> Maybe v
-weightedAverage { add, zero, scale } xs =
-  case List.filter (\x -> x.weight > 0) xs of
-    [] -> Nothing
-    nonZeroes ->
-      let
-          total =
-            List.foldl
-              (\ this total ->
-                { weight = this.weight + total.weight
-                , value  = add (scale this.weight this.value) total.value
-                })
-              { weight = 0, value = zero }
-              nonZeroes
-      in
-      Just (scale (1 / total.weight) total.value)
-
-arrayVS : VectorSpace (Array Float)
-arrayVS =
-  { add = (\a1 a2 -> Array.indexedMap (\i x -> Maybe.withDefault 0 (Array.get i a2) + x) a1)
-  , zero = Array.empty
-  , scale = (\f a -> Array.map (\x -> f * x) a)
-  }
-
 length : Array Float -> Float
 length xs = sqrt (Array.foldl (+) 0 (Array.map (\x -> x * x) xs))
 
@@ -69,6 +39,7 @@ normalize : Array Float -> Maybe (Array Float)
 normalize xs =
   let
       len = length xs
+      arrayVS = Vector.array
   in
   if len == 0
     then Nothing
@@ -92,7 +63,7 @@ step { timeStep } getNeighbour (C { time, phase }) =
                 )
                 weights
         in
-        weightedAverage arrayVS phases
+        Vector.weightedAverage Vector.array phases
         |> Maybe.andThen (\v ->
             Maybe.map2 (\x y -> atan2 y x)
               (Array.get 0 v)

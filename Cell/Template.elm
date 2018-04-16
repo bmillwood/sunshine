@@ -2,7 +2,7 @@ module Cell.Template exposing (Cell, Msg, init, boost, value, step, msg)
 
 import Time exposing (Time)
 
-import Shared exposing (..)
+import Vector exposing (Pt)
 
 type Cell = C
 type Msg = M

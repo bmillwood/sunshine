@@ -10,8 +10,10 @@ import Svg
 import Svg.Attributes
 import Svg.Events
 
-import Cell.Template as Cell exposing (Cell)
-import Shared exposing (..)
+import Cell.Integrator
+import Cell.PhaseSync as Cell exposing (Cell)
+import Cell.Template
+import Vector exposing (Pt)
 
 type Msg =
     Tick Time

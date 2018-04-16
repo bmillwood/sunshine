@@ -4,7 +4,7 @@ import Array exposing (Array)
 import Random
 import Time exposing (Time)
 
-import Shared exposing (..)
+import Vector exposing (Pt)
 
 type Cell = C (Array Float)
 
@@ -36,23 +36,6 @@ weights =
   , (( 0,  1), 1)
   ]
 
-weightedAverage : List { weight : Float, value : Float } -> Maybe Float
-weightedAverage xs =
-  case List.filter (\x -> x.weight > 0) xs of
-    [] -> Nothing
-    nonZeroes ->
-      let
-          total =
-            List.foldl
-              (\ this total ->
-                { weight = this.weight + total.weight
-                , value  = this.weight * this.value + total.value
-                })
-              { weight = 0, value = 0 }
-              nonZeroes
-      in
-      Just (total.value / total.weight)
-
 step : { timeStep : Time } -> (Pt -> Maybe Cell) -> Cell -> (Cell, Cmd Msg)
 step { timeStep } getNeighbour (C ar) =
   ( Array.indexedMap (\o x ->
@@ -66,7 +49,7 @@ step { timeStep } getNeighbour (C ar) =
                 |> Maybe.map (\value -> { weight = weight, value = value })
               )
               weights
-            |> weightedAverage
+            |> Vector.weightedAverage Vector.float
             |> Maybe.withDefault 0
             |> negate
             |> clamp (-1) 1
