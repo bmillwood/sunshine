@@ -10,6 +10,9 @@ type Cell = C { time : Time, phase : Float }
 
 type Msg = SetPhase Float
 
+timeScale : Float
+timeScale = 0.001
+
 init : Pt -> (Cell, Cmd Msg)
 init (_, _) =
   ( C { time = 0, phase = 0 }
@@ -18,7 +21,7 @@ init (_, _) =
 
 boost : { timeStep : Time } -> Cell -> Cell
 boost { timeStep } (C cell) =
-  C { cell | phase = cell.phase - 5 * timeStep }
+  C { cell | phase = cell.phase - 5 * timeScale * timeStep }
 
 value : Cell -> Float
 value (C { time, phase }) = 0.5 * (sin (time + phase) + 1)
@@ -50,7 +53,7 @@ unitWithPhase p = Array.fromList [cos p, sin p]
 
 step : { timeStep : Time } -> (Pt -> Maybe Cell) -> Cell -> (Cell, Cmd Msg)
 step { timeStep } getNeighbour (C { time, phase }) =
-  ( { time = time + timeStep
+  ( { time = time + timeScale * timeStep
     , phase =
         let
             phases =

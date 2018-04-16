@@ -10,6 +10,9 @@ type Cell = C (Array Float)
 
 type Msg = SetRand Float
 
+timeScale : Float
+timeScale = 0.001
+
 init : Pt -> (Cell, Cmd Msg)
 init (_, _) =
   ( C (Array.fromList [0, 0, 0])
@@ -20,7 +23,7 @@ boost : { timeStep : Time } -> Cell -> Cell
 boost { timeStep } (C ar) =
   Array.set
     0
-    (Maybe.withDefault 0 (Array.get 0 ar) + 5 * timeStep)
+    (Maybe.withDefault 0 (Array.get 0 ar) + 5 * timeScale * timeStep)
     ar
   |> C
 
@@ -40,7 +43,7 @@ step : { timeStep : Time } -> (Pt -> Maybe Cell) -> Cell -> (Cell, Cmd Msg)
 step { timeStep } getNeighbour (C ar) =
   ( Array.indexedMap (\o x ->
         case Array.get (o + 1) ar of
-          Just dx -> clamp (-1) 1 (x + timeStep * dx)
+          Just dx -> clamp (-1) 1 (x + timeScale * timeStep * dx)
           Nothing ->
             List.filterMap
               (\(p, weight) ->

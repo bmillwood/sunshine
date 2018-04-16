@@ -10,8 +10,8 @@ import Svg
 import Svg.Attributes
 import Svg.Events
 
-import Cell.Integrator
-import Cell.PhaseSync as Cell exposing (Cell)
+import Cell.Integrator as Cell exposing (Cell)
+import Cell.PhaseSync
 import Cell.Template
 import Vector exposing (Pt)
 
@@ -70,8 +70,7 @@ update msg model =
     Tick rawTimeStep ->
       let
           maxSkip = 0.1 * Time.second
-          timeScale = 0.001
-          timeStep = timeScale * min rawTimeStep maxSkip
+          timeStep = min rawTimeStep maxSkip
           stepCell (i,j) cell =
             Cell.step
               { timeStep = timeStep }
