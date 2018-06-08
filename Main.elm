@@ -11,8 +11,8 @@ import Svg.Attributes
 import Svg.Events
 
 import Cell.Targeting
-import Cell.Integrator as Cell exposing (Cell)
-import Cell.PhaseSync
+import Cell.Integrator
+import Cell.PhaseSync as Cell exposing (Cell)
 import Cell.Template
 import Vector exposing (Pt)
 

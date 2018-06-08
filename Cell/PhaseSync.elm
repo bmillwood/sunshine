@@ -6,16 +6,16 @@ import Time exposing (Time)
 
 import Vector exposing (Pt)
 
-type Cell = C { time : Time, phase : Float }
+type Cell = C { phase : Float }
 
 type Msg = SetPhase Float
 
 timeScale : Float
-timeScale = 0.001
+timeScale = 0.004
 
 init : Pt -> (Cell, Cmd Msg)
 init (_, _) =
-  ( C { time = 0, phase = 0 }
+  ( C { phase = 0 }
   , Random.generate SetPhase (Random.float (negate pi) pi)
   )
 
@@ -24,7 +24,7 @@ boost { timeStep } (C cell) =
   C { cell | phase = cell.phase - 5 * timeScale * timeStep }
 
 value : Cell -> Float
-value (C { time, phase }) = 0.5 * (sin (time + phase) + 1)
+value (C { phase }) = 0.5 * (sin phase + 1)
 
 weights : List (Pt, Float)
 weights =
@@ -51,10 +51,15 @@ normalize xs =
 unitWithPhase : Float -> Array Float
 unitWithPhase p = Array.fromList [cos p, sin p]
 
+advancePhase : { timeStep : Float } -> Float -> Float
+advancePhase { timeStep } f =
+  let newF = f + timeStep * timeScale
+  in
+      if newF > pi then newF - 2*pi else newF
+
 step : { timeStep : Time } -> (Pt -> Maybe Cell) -> Cell -> (Cell, Cmd Msg)
-step { timeStep } getNeighbour (C { time, phase }) =
-  ( { time = time + timeScale * timeStep
-    , phase =
+step { timeStep } getNeighbour (C { phase }) =
+  ( { phase =
         let
             phases =
               List.filterMap
@@ -73,9 +78,10 @@ step { timeStep } getNeighbour (C { time, phase }) =
               (Array.get 1 v)
           )
         |> Maybe.withDefault phase
+        |> advancePhase { timeStep = timeStep }
     } |> C
   , Cmd.none
   )
 
 msg : Msg -> Cell -> (Cell, Cmd Msg)
-msg (SetPhase v) (C c) = (C { c | phase = v }, Cmd.none)
+msg (SetPhase v) (C c) = (C { phase = v }, Cmd.none)
