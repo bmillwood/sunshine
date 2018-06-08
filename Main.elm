@@ -10,8 +10,8 @@ import Svg
 import Svg.Attributes
 import Svg.Events
 
-import Cell.Targeting as Cell exposing (Cell)
-import Cell.Integrator
+import Cell.Targeting
+import Cell.Integrator as Cell exposing (Cell)
 import Cell.PhaseSync
 import Cell.Template
 import Vector exposing (Pt)
