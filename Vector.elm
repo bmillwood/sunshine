@@ -1,6 +1,7 @@
-module Vector exposing (Pt, VectorSpace, float, array, weightedAverage)
+module Vector exposing (Pt, VectorSpace, float, array, time, weightedAverage)
 
 import Array exposing (Array)
+import Time exposing (Time)
 
 type alias Pt = (Int, Int)
 
@@ -16,6 +17,9 @@ float =
   , zero = 0
   , scale = (*)
   }
+
+time : VectorSpace Time
+time = float
 
 array : VectorSpace (Array Float)
 array =

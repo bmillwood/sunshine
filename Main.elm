@@ -10,7 +10,8 @@ import Svg
 import Svg.Attributes
 import Svg.Events
 
-import Cell.Integrator as Cell exposing (Cell)
+import Cell.Targeting as Cell exposing (Cell)
+import Cell.Integrator
 import Cell.PhaseSync
 import Cell.Template
 import Vector exposing (Pt)
@@ -25,8 +26,8 @@ type alias Model =
   , moused : Maybe Pt
   }
 
-squaresWide = 16
-squaresHigh = 16
+squaresWide = 27
+squaresHigh = 13
 
 splitCellsCmds : Dict Pt (Cell, Cmd Cell.Msg) -> (Dict Pt Cell, Cmd Msg)
 splitCellsCmds cells =
