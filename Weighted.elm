@@ -1,8 +1,11 @@
-module Weighted exposing (Weighted, average, self, adjacent, diagonal)
+module Weighted exposing (Weighted, map, average, self, adjacent, diagonal)
 
 import Vector exposing (Pt, VectorSpace)
 
 type alias Weighted a = { weight : Float, value : a }
+
+map : (a -> b) -> Weighted a -> Weighted b
+map f w = { w | value = f w.value }
 
 average : VectorSpace v -> List (Weighted v) -> Maybe v
 average { add, zero, scale } xs =
