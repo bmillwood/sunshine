@@ -8,15 +8,18 @@ import Vector exposing (Pt)
 
 type Cell = C { phase : Float }
 
-type Msg = SetPhase Float
+type Msg = TweakPhase Float
 
 timeScale : Float
 timeScale = 0.004
 
+tweakSize : Float
+tweakSize = 0.01 * pi
+
 init : Pt -> (Cell, Cmd Msg)
 init (_, _) =
   ( C { phase = 0 }
-  , Random.generate SetPhase (Random.float (negate pi) pi)
+  , Random.generate TweakPhase (Random.float (negate pi) pi)
   )
 
 boost : { timeStep : Time } -> Cell -> Cell
@@ -80,8 +83,8 @@ step { timeStep } getNeighbour (C { phase }) =
         |> Maybe.withDefault phase
         |> advancePhase { timeStep = timeStep }
     } |> C
-  , Cmd.none
+  , Random.generate TweakPhase (Random.float (negate tweakSize) tweakSize)
   )
 
 msg : Msg -> Cell -> (Cell, Cmd Msg)
-msg (SetPhase v) (C c) = (C { phase = v }, Cmd.none)
+msg (TweakPhase tw) (C c) = (C { phase = c.phase + tw }, Cmd.none)
