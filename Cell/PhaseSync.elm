@@ -5,6 +5,7 @@ import Random
 import Time exposing (Time)
 
 import Vector exposing (Pt)
+import Weighted exposing (Weighted)
 
 type Cell = C { phase : Float }
 
@@ -29,14 +30,8 @@ boost { timeStep } (C cell) =
 value : Cell -> Float
 value (C { phase }) = 0.5 * (sin phase + 1)
 
-weights : List (Pt, Float)
-weights =
-  [ (( 0,  0), 500)
-  , ((-1,  0),   1)
-  , (( 1,  0),   1)
-  , (( 0, -1),   1)
-  , (( 0,  1),   1)
-  ]
+weights : List (Weighted Pt)
+weights = Weighted.self 500 ++ Weighted.adjacent 1
 
 length : Array Float -> Float
 length xs = sqrt (Array.foldl (+) 0 (Array.map (\x -> x * x) xs))
@@ -66,15 +61,15 @@ step { timeStep } getNeighbour (C { phase }) =
         let
             phases =
               List.filterMap
-                (\(pt, weight) ->
-                  getNeighbour pt
+                (\wpt ->
+                  getNeighbour wpt.value
                   |> Maybe.map (\ (C c) ->
-                      { weight = weight, value = unitWithPhase c.phase }
+                      { weight = wpt.weight, value = unitWithPhase c.phase }
                     )
                 )
                 weights
         in
-        Vector.weightedAverage Vector.array phases
+        Weighted.average Vector.array phases
         |> Maybe.andThen (\v ->
             Maybe.map2 (\x y -> atan2 y x)
               (Array.get 0 v)

@@ -16,6 +16,7 @@ import Random
 import Time exposing (Time)
 
 import Vector exposing (Pt)
+import Weighted exposing (Weighted)
 
 -- Index i+1 is the derivative of index i
 type Cell = C (Array Float)
@@ -47,14 +48,8 @@ boost { timeStep } (C ar) =
 value : Cell -> Float
 value (C ar) = 0.5 * (Maybe.withDefault 0 (Array.get 0 ar) + 1)
 
-weights : List (Pt, Float)
-weights =
-  [ (( 0,  0), 4)
-  , ((-1,  0), 1)
-  , (( 1,  0), 1)
-  , (( 0, -1), 1)
-  , (( 0,  1), 1)
-  ]
+weights : List (Weighted Pt)
+weights = Weighted.self 4 ++ Weighted.adjacent 1
 
 step : { timeStep : Time } -> (Pt -> Maybe Cell) -> Cell -> (Cell, Cmd Msg)
 step { timeStep } getNeighbour (C ar) =
@@ -63,13 +58,13 @@ step { timeStep } getNeighbour (C ar) =
           Just dx -> clamp (-1) 1 (x + timeScale * timeStep * dx)
           Nothing ->
             List.filterMap
-              (\(p, weight) ->
-                getNeighbour p
+              (\wpt ->
+                getNeighbour wpt.value
                 |> Maybe.andThen (\(C a) -> Array.get 0 a)
-                |> Maybe.map (\value -> { weight = weight, value = value })
+                |> Maybe.map (\value -> { weight = wpt.weight, value = value })
               )
               weights
-            |> Vector.weightedAverage Vector.float
+            |> Weighted.average Vector.float
             |> Maybe.withDefault 0
             |> negate
             |> clamp (-1) 1

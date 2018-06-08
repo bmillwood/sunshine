@@ -4,6 +4,7 @@ import Random
 import Time exposing (Time)
 
 import Vector exposing (Pt)
+import Weighted exposing (Weighted)
 
 type alias Happiness =
   { baseHappiness : Float
@@ -17,17 +18,8 @@ type Cell = C Happiness
 
 type Msg = Target { target : Float, period : Time }
 
-weights : { adjacent : Float, diagonal : Float } -> List (Pt, Float)
-weights { adjacent, diagonal } =
-  [ ((-1,  0), adjacent)
-  , (( 1,  0), adjacent)
-  , (( 0, -1), adjacent)
-  , (( 0,  1), adjacent)
-  , ((-1, -1), diagonal)
-  , ((-1,  1), diagonal)
-  , (( 1, -1), diagonal)
-  , (( 1,  1), diagonal)
-  ]
+weights : List (Weighted Pt)
+weights = Weighted.adjacent 1 ++ Weighted.diagonal 0.5
 
 vectorTarget : Vector.VectorSpace { target : Float, period : Time }
 vectorTarget =
@@ -41,23 +33,20 @@ genTarget hap getNeighbour =
   let
       randomWeight = 4
       neighbourTargets =
-        List.filterMap (\(pt, weight) ->
-          getNeighbour pt
+        List.filterMap (\wpt ->
+          getNeighbour wpt.value
           |> Maybe.map (\ (C hap) ->
-                { weight = hap.happiness * weight
+                { weight = hap.happiness * wpt.weight
                 , value = { target = hap.target, period = hap.period }
                 }
               )
           )
-          (weights
-            { adjacent = 1
-            , diagonal = 0.5
-            })
+          weights
       ofRandoms t1 t2 =
         let
             randomTarget = { target = t1, period = t2 * Time.second }
         in
-        Vector.weightedAverage vectorTarget
+        Weighted.average vectorTarget
           ({ weight = randomWeight, value = randomTarget } :: neighbourTargets)
         |> Maybe.withDefault { target = hap.target, period = Time.second }
   in

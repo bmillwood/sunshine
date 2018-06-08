@@ -1,4 +1,4 @@
-module Vector exposing (Pt, VectorSpace, float, array, time, weightedAverage)
+module Vector exposing (Pt, VectorSpace, float, array, time)
 
 import Array exposing (Array)
 import Time exposing (Time)
@@ -27,20 +27,3 @@ array =
   , zero = Array.empty
   , scale = (\f a -> Array.map (\x -> f * x) a)
   }
-
-weightedAverage : VectorSpace v -> List { weight : Float, value : v } -> Maybe v
-weightedAverage { add, zero, scale } xs =
-  case List.filter (\x -> x.weight > 0) xs of
-    [] -> Nothing
-    nonZeroes ->
-      let
-          total =
-            List.foldl
-              (\ this total ->
-                { weight = this.weight + total.weight
-                , value  = add (scale this.weight this.value) total.value
-                })
-              { weight = 0, value = zero }
-              nonZeroes
-      in
-      Just (scale (1 / total.weight) total.value)
