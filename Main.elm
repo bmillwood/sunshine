@@ -12,7 +12,7 @@ import Svg.Events
 
 import Cell.Targeting
 import Cell.Integrator
-import Cell.PhaseSync as Cell exposing (Cell)
+import Cell.Cycle as Cell exposing (Cell)
 import Cell.Template
 import Vector exposing (Pt)
 
