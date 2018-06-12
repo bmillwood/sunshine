@@ -133,11 +133,20 @@ view { cells } =
           ]
           []
   in
-  Svg.svg
-    [ Html.Attributes.width  (squaresWide * squareSize)
-    , Html.Attributes.height (squaresHigh * squareSize)
+  Html.div
+    []
+    [ Svg.svg
+        [ Html.Attributes.width  (squaresWide * squareSize)
+        , Html.Attributes.height (squaresHigh * squareSize)
+        ]
+        (List.map squareFor (Dict.toList cells))
+    , Html.p
+        [ Html.Attributes.id "help" ]
+        [ Html.text "mouse over people to hang out with them"
+        , Html.br [] []
+        , Html.text " and make them less gloomy"
+        ]
     ]
-    (List.map squareFor (Dict.toList cells))
 
 subscriptions : Model -> Sub Msg
 subscriptions _ = AnimationFrame.diffs Tick
