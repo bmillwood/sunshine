@@ -14,16 +14,19 @@ import Cell.Targeting
 import Cell.Integrator
 import Cell.Cycle as Cell exposing (Cell)
 import Cell.Template
+import Help
 import Vector exposing (Pt)
 
-type Msg =
-    Tick Time
+type Msg
+  = Tick Time
   | Moused Bool Pt
   | Cell Pt Cell.Msg
+  | Help Help.Msg
 
 type alias Model =
   { cells  : Dict Pt Cell
   , moused : Maybe Pt
+  , help   : Help.Model
   }
 
 squaresWide = 13
@@ -39,7 +42,7 @@ splitCellsCmds cells =
 init : (Model, Cmd Msg)
 init =
   let
-      (cells, cmd) =
+      (cells, cellCmd) =
         List.concatMap (\i ->
             List.concatMap (\j ->
                 [((i,j), Cell.init (i, j))]
@@ -49,11 +52,14 @@ init =
           (List.range 0 (squaresHigh - 1))
         |> Dict.fromList
         |> splitCellsCmds
+
+      (help, helpCmd) = Help.init
   in
-  ( { cells = cells
+  ( { cells  = cells
     , moused = Nothing
+    , help   = help
     }
-  , cmd
+  , Cmd.batch [cellCmd, Cmd.map Help helpCmd]
   )
 
 applyMouse : Time -> Model -> Model
@@ -104,9 +110,16 @@ update msg model =
           ( { model | cells = Dict.insert pt newCell model.cells }
           , Cmd.map (\r -> Cell pt r) cmd
           )
+    Help helpMsg ->
+      let
+          (help, helpCmd) = Help.update helpMsg model.help
+      in
+      ( { model | help = help }
+      , Cmd.map Help helpCmd
+      )
 
 view : Model -> Html Msg
-view { cells } =
+view { cells, help } =
   let
       squareSize = 40
 
@@ -140,12 +153,7 @@ view { cells } =
         , Html.Attributes.height (squaresHigh * squareSize)
         ]
         (List.map squareFor (Dict.toList cells))
-    , Html.p
-        [ Html.Attributes.id "help" ]
-        [ Html.text "mouse over people to hang out with them"
-        , Html.br [] []
-        , Html.text " and make them less gloomy"
-        ]
+    , Html.map Help (Help.view help)
     ]
 
 subscriptions : Model -> Sub Msg
