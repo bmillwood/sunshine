@@ -21,7 +21,7 @@ type Msg = Target { target : Float, period : Time }
 weights : List (Weighted Pt)
 weights = Weighted.adjacent 1 ++ Weighted.diagonal 0.5
 
-vectorTarget : Vector.VectorSpace { target : Float, period : Time }
+vectorTarget : Vector.Space { target : Float, period : Time }
 vectorTarget =
   { zero = { target = 0, period = 0 }
   , add = (\t1 t2 -> { target = t1.target + t2.target, period = t1.period + t2.period })

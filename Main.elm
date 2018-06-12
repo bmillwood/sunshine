@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Array
 import Dict exposing (Dict)
 import Time exposing (Time)
 
@@ -15,6 +16,7 @@ import Cell.Integrator
 import Cell.Cycle as Cell exposing (Cell)
 import Cell.Template
 import Help
+import Lerp
 import Vector exposing (Pt)
 
 type Msg
@@ -123,16 +125,23 @@ view { cells, help } =
   let
       squareSize = 40
 
+      colours =
+        [ (0.00, Vector.Vec3 0.00 0.00 0.00)
+        , (0.25, Vector.Vec3 0.25 0.00 0.25)
+        , (0.75, Vector.Vec3 0.75 0.00 0.00)
+        , (1.00, Vector.Vec3 1.00 1.00 0.00)
+        ] |> Array.fromList
+
       toColour cell =
         let
             c f = toString (floor (255 * min (max 0 f) 1))
-            make r g b =
+            make (Vector.Vec3 r g b) =
               "rgb(" ++ c r ++ "," ++ c g ++ "," ++ c b ++ ")"
             value = Cell.value cell
         in
-             if value < 0.25 then make value 0 value
-        else if value < 0.75 then make value 0 (0.5*(0.75 - value))
-        else                      make value (3*(value - 0.75)) 0
+        Lerp.at (Vector.vec3 Vector.float) colours value
+        |> Maybe.withDefault (Vector.Vec3 0 0 0)
+        |> make
 
       squareFor ((i,j), cell) =
         Svg.rect

@@ -1,13 +1,13 @@
 module Weighted exposing (Weighted, map, average, self, adjacent, diagonal)
 
-import Vector exposing (Pt, VectorSpace)
+import Vector exposing (Pt)
 
 type alias Weighted a = { weight : Float, value : a }
 
 map : (a -> b) -> Weighted a -> Weighted b
 map f w = { w | value = f w.value }
 
-average : VectorSpace v -> List (Weighted v) -> Maybe v
+average : Vector.Space v -> List (Weighted v) -> Maybe v
 average { add, zero, scale } xs =
   case List.filter (\x -> x.weight > 0) xs of
     [] -> Nothing
