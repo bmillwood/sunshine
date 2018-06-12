@@ -26,7 +26,7 @@ type alias Model =
   , moused : Maybe Pt
   }
 
-squaresWide = 27
+squaresWide = 13
 squaresHigh = 13
 
 splitCellsCmds : Dict Pt (Cell, Cmd Cell.Msg) -> (Dict Pt Cell, Cmd Msg)

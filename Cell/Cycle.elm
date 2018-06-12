@@ -4,6 +4,7 @@ import Array exposing (Array)
 import Random
 import Time exposing (Time)
 
+import Sample
 import Vector exposing (Pt)
 import Weighted exposing (Weighted)
 
@@ -21,28 +22,37 @@ type Msg = Tweak Cell
 timeScale : Float
 timeScale = 0.001
 
+value : Cell -> Float
+value (C cell) = cell.radius * sin cell.phase + cell.centre
+
 tweakSize : Field -> Cell -> Float
-tweakSize f (C cell) =
+tweakSize f cell =
   case f of
     Phase -> 0.01 * pi
-    Speed -> 0.01
+    Speed -> 0.05
     Centre -> 0
     Radius -> 0
 
 weights : Field -> Cell -> List (Weighted Pt)
-weights fi (C cell) =
+weights fi cell =
+  let
+      v = value cell ^ 2
+  in
   case fi of
-    Phase -> Weighted.self 500 ++ Weighted.adjacent 1
-    Speed -> Weighted.self 10 ++ Weighted.adjacent 1
-    Centre -> Weighted.self 1
+    Phase  -> Weighted.self 500 ++ Weighted.adjacent v
+    Speed  -> Weighted.self 40  ++ Weighted.adjacent v
+    Centre -> Weighted.self 160 ++ Weighted.adjacent 1
     Radius -> Weighted.self 1
 
 clampCell : Cell -> Cell
 clampCell (C cell) =
+  let
+      radius = clamp 0 0.5 cell.radius
+  in
   { phase  = cell.phase
-  , speed  = max 0 cell.speed
-  , centre = clamp 0 1 cell.centre
-  , radius = clamp 0 (max 0 (min cell.centre (1 - cell.centre))) cell.radius
+  , speed  = cell.speed
+  , centre = clamp radius (1 - radius) cell.centre
+  , radius = radius
   } |> C
 
 initCell : (Field -> Float) -> Cell
@@ -89,9 +99,11 @@ init (_, _) =
     |> Random.map
       (\(C random) ->
         { phase = pi * (2 * random.phase - 1)
-        , speed = 1
-        , centre = 0.2
-        , radius = 0.2
+        , speed =
+          Sample.ofUniform 0 1 random.speed
+          |> Sample.toExponential { mean = 1 }
+        , centre = 0.1
+        , radius = 0.1
         } |> C
       )
     |> Random.generate Tweak
@@ -99,10 +111,11 @@ init (_, _) =
 
 boost : { timeStep : Time } -> Cell -> Cell
 boost { timeStep } (C cell) =
-  C { cell | phase = cell.phase - 5 * timeScale * timeStep }
-
-value : Cell -> Float
-value (C cell) = cell.radius * sin cell.phase + cell.centre
+  { cell
+  | centre = cell.centre + timeStep * timeScale * 2
+  , speed  = cell.speed  + timeStep * timeScale * 1
+  , phase  = cell.phase  + cell.speed * timeStep * timeScale
+  } |> C
 
 length : Array Float -> Float
 length xs = sqrt (Array.foldl (+) 0 (Array.map (\x -> x * x) xs))
@@ -136,6 +149,11 @@ step { timeStep } getNeighbour (C cell) =
             |> Maybe.map (\cell -> { wpt | value = f cell })
           )
           (weights field (C cell))
+
+      straightAverage field =
+        onNeighbours field (get field)
+        |> Weighted.average Vector.float
+        |> Maybe.withDefault (get field (C cell))
   in
   ( { cell
     | phase =
@@ -148,10 +166,8 @@ step { timeStep } getNeighbour (C cell) =
           )
         |> Maybe.withDefault cell.phase
         |> advancePhase { timeStep = timeStep, speed = cell.speed }
-    , speed =
-        onNeighbours Speed (\(C c) -> c.speed)
-        |> Weighted.average Vector.float
-        |> Maybe.withDefault cell.speed
+    , speed  = straightAverage Speed
+    , centre = straightAverage Centre
     } |> C
   , unif01Cell
     |> Random.map (mapi (\field v -> (2 * v - 1) * tweakSize field (C cell)))
