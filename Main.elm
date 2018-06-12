@@ -128,11 +128,12 @@ view { cells, help } =
       colours =
         [ (0.00, Vector.Vec3 0.00 0.00 0.00)
         , (0.20, Vector.Vec3 0.25 0.00 0.25)
-        , (0.60, Vector.Vec3 0.75 0.00 0.00)
-        , (0.80, Vector.Vec3 1.00 1.00 0.00)
+        , (0.50, Vector.Vec3 0.75 0.00 0.00)
+        , (0.75, Vector.Vec3 1.00 1.00 0.00)
+        , (0.80, Vector.Vec3 1.00 1.00 1.00)
         , (0.85, Vector.Vec3 1.00 1.00 1.00)
-        , (0.90, Vector.Vec3 1.00 1.00 1.00)
-        , (1.00, Vector.Vec3 0.00 1.00 1.00)
+        , (0.90, Vector.Vec3 0.00 1.00 1.00)
+        , (1.00, Vector.Vec3 0.00 0.80 1.00)
         ] |> Array.fromList
 
       toColour cell =
