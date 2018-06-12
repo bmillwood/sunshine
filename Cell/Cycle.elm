@@ -37,9 +37,18 @@ weights fi (C cell) =
     Centre -> Weighted.self 1
     Radius -> Weighted.self 1
 
+clampCell : Cell -> Cell
+clampCell (C cell) =
+  { phase  = cell.phase
+  , speed  = max 0 cell.speed
+  , centre = clamp 0 1 cell.centre
+  , radius = clamp 0 (max 0 (min cell.centre (1 - cell.centre))) cell.radius
+  } |> C
+
 initCell : (Field -> Float) -> Cell
 initCell f =
   C { phase = f Phase, speed = f Speed, centre = f Centre, radius = f Radius }
+  |> clampCell
 
 zero : Cell
 zero = initCell (\_ -> 0)
