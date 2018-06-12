@@ -30,13 +30,29 @@ init =
 
       help2 =
         [ line1
-        , br, Html.text " and make them less gloomy"
+        , br, Html.text "and make them less gloomy"
+        , br, moreHelp dismissed "ok."
+        , Html.text " "
+        , moreHelp tech "tech?"
+        ] |> M
+
+      tech =
+        [ Html.text "powered by "
+        , Html.a
+            [ Html.Attributes.href "https://elm-lang.org" ]
+            [ Html.text "elm" ]
+        , Html.text "; code available on "
+        , Html.a
+            [ Html.Attributes.href "https://github.com/bmillwood/sunshine" ]
+            [ Html.text "github" ]
         , br, moreHelp dismissed "ok."
         ] |> M
 
       dismissed = M []
   in
-  ( M [ moreHelp help1 "what?" ]
+  ( M
+    [ moreHelp help1 "what?"
+    ]
   , Cmd.none
   )
 
