@@ -23,17 +23,22 @@ init =
       br = Html.br [] []
       line1 = Html.text "mouse over people to hang out with them"
 
+      help0 =
+        [ moreHelp help1 "huh?"
+        ] |> M
+
       help1 =
         [ line1
-        , br, moreHelp help2 "huh?"
+        , br, moreHelp dismissed "oh ok."
+        , br, moreHelp help2 "I don't get it"
+        , br, moreHelp tech "tech?"
         ] |> M
 
       help2 =
         [ line1
         , br, Html.text "and make them less gloomy"
         , br, moreHelp dismissed "ok."
-        , Html.text " "
-        , moreHelp tech "tech?"
+        , br, moreHelp tech "tech?"
         ] |> M
 
       tech =
@@ -50,9 +55,7 @@ init =
 
       dismissed = M []
   in
-  ( M
-    [ moreHelp help1 "what?"
-    ]
+  ( help0
   , Cmd.none
   )
 
