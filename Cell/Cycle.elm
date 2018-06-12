@@ -4,6 +4,7 @@ import Array exposing (Array)
 import Random
 import Time exposing (Time)
 
+import Lerp
 import Sample
 import Vector exposing (Pt)
 import Weighted exposing (Weighted)
@@ -36,12 +37,27 @@ tweakSize f cell =
 weights : Field -> Cell -> List (Weighted Pt)
 weights fi cell =
   let
-      v = value cell ^ 2
+      v = value cell
+
+      centreWeights =
+        [ (0.00, 160)
+        , (0.60, 160)
+        , (0.70,  40)
+        , (0.90,   0)
+        , (1.00,   0)
+        ] |> Array.fromList
+
+      csw =
+        Lerp.at Vector.float centreWeights v
+        |> Maybe.withDefault 160
   in
   case fi of
-    Phase  -> Weighted.self 500 ++ Weighted.adjacent v
-    Speed  -> Weighted.self 40  ++ Weighted.adjacent v
-    Centre -> Weighted.self 160 ++ Weighted.adjacent 1
+    Phase  -> Weighted.self 500 ++ Weighted.adjacent (v^2)
+    Speed  -> Weighted.self 40  ++ Weighted.adjacent (v^2)
+    Centre ->
+      Weighted.self csw
+      ++ Weighted.adjacent 1
+      ++ Weighted.diagonal 1
     Radius -> Weighted.self 1
 
 clampCell : Cell -> Cell
