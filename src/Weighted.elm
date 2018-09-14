@@ -5,7 +5,7 @@ import Vector exposing (Pt)
 type alias Weighted a = { weight : Float, value : a }
 
 map : (a -> b) -> Weighted a -> Weighted b
-map f w = { w | value = f w.value }
+map f w = { weight = w.weight, value = f w.value }
 
 average : Vector.Space v -> List (Weighted v) -> Maybe v
 average { add, zero, scale } xs =
@@ -15,9 +15,9 @@ average { add, zero, scale } xs =
       let
           total =
             List.foldl
-              (\ this total ->
-                { weight = this.weight + total.weight
-                , value  = add (scale this.weight this.value) total.value
+              (\ this acc ->
+                { weight = this.weight + acc.weight
+                , value  = add (scale this.weight this.value) acc.value
                 })
               { weight = 0, value = zero }
               nonZeroes

@@ -2,14 +2,16 @@ module Main exposing (main)
 
 import Array
 import Dict exposing (Dict)
-import Time exposing (Time)
 
-import AnimationFrame
+import Browser
+import Browser.Events
 import Html exposing (Html)
 import Html.Attributes
 import Svg
 import Svg.Attributes
 import Svg.Events
+
+import Debug
 
 import Cell.Targeting
 import Cell.Integrator
@@ -17,10 +19,11 @@ import Cell.Cycle as Cell exposing (Cell)
 import Cell.Template
 import Help
 import Lerp
+import Timespan exposing (Timespan)
 import Vector exposing (Pt)
 
 type Msg
-  = Tick Time
+  = Tick Timespan
   | Moused Bool Pt
   | Cell Pt Cell.Msg
   | Help Help.Msg
@@ -41,8 +44,8 @@ splitCellsCmds cells =
     |> Cmd.batch
   )
 
-init : (Model, Cmd Msg)
-init =
+init : () -> (Model, Cmd Msg)
+init () =
   let
       (cells, cellCmd) =
         List.concatMap (\i ->
@@ -64,7 +67,7 @@ init =
   , Cmd.batch [cellCmd, Cmd.map Help helpCmd]
   )
 
-applyMouse : Time -> Model -> Model
+applyMouse : Timespan -> Model -> Model
 applyMouse timeStep model =
   case model.moused of
     Nothing -> model
@@ -78,8 +81,8 @@ update msg model =
   case msg of
     Tick rawTimeStep ->
       let
-          maxSkip = 0.1 * Time.second
-          timeStep = min rawTimeStep maxSkip
+          maxSkip = Timespan.fromSeconds 0.1
+          timeStep = Timespan.min rawTimeStep maxSkip
           stepCell (i,j) cell =
             Cell.step
               { timeStep = timeStep }
@@ -138,7 +141,7 @@ view { cells, help } =
 
       toColour cell =
         let
-            c f = toString (floor (255 * min (max 0 f) 1))
+            c f = String.fromInt (floor (255 * min (max 0 f) 1))
             make (Vector.Vec3 r g b) =
               "rgb(" ++ c r ++ "," ++ c g ++ "," ++ c b ++ ")"
             value = Cell.value cell
@@ -151,10 +154,10 @@ view { cells, help } =
 
       squareFor ((i,j), cell) =
         Svg.rect
-          [ Svg.Attributes.width  (toString squareSize)
-          , Svg.Attributes.height (toString squareSize)
-          , Svg.Attributes.x      (toString (j * squareSize))
-          , Svg.Attributes.y      (toString (i * squareSize))
+          [ Svg.Attributes.width  (String.fromInt squareSize)
+          , Svg.Attributes.height (String.fromInt squareSize)
+          , Svg.Attributes.x      (String.fromInt (j * squareSize))
+          , Svg.Attributes.y      (String.fromInt (i * squareSize))
           , Svg.Attributes.fill   (toColour cell)
           , Svg.Events.onMouseOver (Moused True  (i, j))
           , Svg.Events.onMouseOut  (Moused False (i, j))
@@ -172,10 +175,12 @@ view { cells, help } =
     ]
 
 subscriptions : Model -> Sub Msg
-subscriptions _ = AnimationFrame.diffs Tick
+subscriptions _ =
+  Browser.Events.onAnimationFrameDelta
+    (\millis -> Tick (Timespan.fromMilliseconds millis))
 
 main =
-  Html.program
+  Browser.element
     { init          = init
     , view          = view
     , update        = update

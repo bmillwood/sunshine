@@ -1,7 +1,6 @@
 module Cell.Template exposing (Cell, Msg, init, boost, value, step, msg)
 
-import Time exposing (Time)
-
+import Timespan exposing (Timespan)
 import Vector exposing (Pt)
 
 type Cell = C
@@ -13,13 +12,13 @@ init (_, _) =
   , Cmd.none
   )
 
-boost : { timeStep : Time } -> Cell -> Cell
+boost : { timeStep : Timespan } -> Cell -> Cell
 boost { timeStep } C = C
 
 value : Cell -> Float
 value C = 0.5
 
-step : { timeStep : Time } -> (Pt -> Maybe Cell) -> Cell -> (Cell, Cmd Msg)
+step : { timeStep : Timespan } -> (Pt -> Maybe Cell) -> Cell -> (Cell, Cmd Msg)
 step { timeStep } getNeighbour C = (C, Cmd.none)
 
 msg : Msg -> Cell -> (Cell, Cmd Msg)

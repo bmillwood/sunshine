@@ -6,7 +6,7 @@ module Vector exposing
   )
 
 import Array exposing (Array)
-import Time exposing (Time)
+import Timespan exposing (Timespan)
 
 type alias Pt = (Int, Int)
 
@@ -27,8 +27,8 @@ float =
   , scale = (*)
   }
 
-time : Space Time
-time = float
+time : Space Timespan
+time = { add = Timespan.add, zero = Timespan.zero, scale = Timespan.scale }
 
 array : Space (Array Float)
 array =

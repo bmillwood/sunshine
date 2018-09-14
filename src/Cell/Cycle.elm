@@ -2,10 +2,10 @@ module Cell.Cycle exposing (Cell, Msg, init, boost, value, step, msg)
 
 import Array exposing (Array)
 import Random
-import Time exposing (Time)
 
 import Lerp
 import Sample
+import Timespan exposing (Timespan)
 import Vector exposing (Pt)
 import Weighted exposing (Weighted)
 
@@ -21,7 +21,7 @@ type Field = Phase | Speed | Centre | Radius
 type Msg = Tweak Cell
 
 timeScale : Float
-timeScale = 0.001
+timeScale = 1
 
 value : Cell -> Float
 value (C cell) = cell.radius * sin cell.phase + cell.centre
@@ -125,12 +125,15 @@ init (_, _) =
     |> Random.generate Tweak
   )
 
-boost : { timeStep : Time } -> Cell -> Cell
+boost : { timeStep : Timespan } -> Cell -> Cell
 boost { timeStep } (C cell) =
+  let
+      seconds = Timespan.toSeconds timeStep
+  in
   { cell
-  | centre = cell.centre + timeStep * timeScale * 2
-  , speed  = cell.speed  + timeStep * timeScale * 1
-  , phase  = cell.phase  + cell.speed * timeStep * timeScale
+  | centre = cell.centre + seconds * timeScale * 2
+  , speed  = cell.speed  + seconds * timeScale * 1
+  , phase  = cell.phase  + cell.speed * seconds * timeScale
   } |> C
 
 length : Array Float -> Float
@@ -149,20 +152,20 @@ normalize xs =
 unitWithPhase : Float -> Array Float
 unitWithPhase p = Array.fromList [cos p, sin p]
 
-advancePhase : { timeStep : Float, speed : Float } -> Float -> Float
+advancePhase : { timeStep : Timespan, speed : Float } -> Float -> Float
 advancePhase { timeStep, speed } f =
-  let newF = f + timeStep * timeScale * speed
+  let newF = f + Timespan.toSeconds timeStep * timeScale * speed
   in
   if newF > pi then newF - 2*pi else newF
 
-step : { timeStep : Time } -> (Pt -> Maybe Cell) -> Cell -> (Cell, Cmd Msg)
+step : { timeStep : Timespan } -> (Pt -> Maybe Cell) -> Cell -> (Cell, Cmd Msg)
 step { timeStep } getNeighbour (C cell) =
   let
       onNeighbours field f =
         List.filterMap
           (\wpt ->
             getNeighbour wpt.value
-            |> Maybe.map (\cell -> { wpt | value = f cell })
+            |> Maybe.map (\c -> { weight = wpt.weight, value = f c })
           )
           (weights field (C cell))
 

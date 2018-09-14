@@ -13,8 +13,8 @@ harmonic motion, with a bit of drift over time.
 
 import Array exposing (Array)
 import Random
-import Time exposing (Time)
 
+import Timespan exposing (Timespan)
 import Vector exposing (Pt)
 import Weighted exposing (Weighted)
 
@@ -26,7 +26,7 @@ type Msg
   | TweakRand Float
 
 timeScale : Float
-timeScale = 0.004
+timeScale = 4
 
 tweakSize : Float
 tweakSize = 0.3
@@ -37,11 +37,14 @@ init (_, _) =
   , Cmd.none -- Random.generate SetRand (Random.float (-1) 1)
   )
 
-boost : { timeStep : Time } -> Cell -> Cell
+boost : { timeStep : Timespan } -> Cell -> Cell
 boost { timeStep } (C ar) =
+  let
+      seconds = Timespan.toSeconds timeStep
+  in
   Array.set
     0
-    (Maybe.withDefault 0 (Array.get 0 ar) + 5 * timeScale * timeStep)
+    (Maybe.withDefault 0 (Array.get 0 ar) + 5 * timeScale * seconds)
     ar
   |> C
 
@@ -51,17 +54,20 @@ value (C ar) = 0.5 * (Maybe.withDefault 0 (Array.get 0 ar) + 1)
 weights : List (Weighted Pt)
 weights = Weighted.self 4 ++ Weighted.adjacent 1
 
-step : { timeStep : Time } -> (Pt -> Maybe Cell) -> Cell -> (Cell, Cmd Msg)
+step : { timeStep : Timespan } -> (Pt -> Maybe Cell) -> Cell -> (Cell, Cmd Msg)
 step { timeStep } getNeighbour (C ar) =
+  let
+      seconds = Timespan.toSeconds timeStep
+  in
   ( Array.indexedMap (\o x ->
         case Array.get (o + 1) ar of
-          Just dx -> clamp (-1) 1 (x + timeScale * timeStep * dx)
+          Just dx -> clamp (-1) 1 (x + timeScale * seconds * dx)
           Nothing ->
             List.filterMap
               (\wpt ->
                 getNeighbour wpt.value
                 |> Maybe.andThen (\(C a) -> Array.get 0 a)
-                |> Maybe.map (\value -> { weight = wpt.weight, value = value })
+                |> Maybe.map (\v -> { weight = wpt.weight, value = v })
               )
               weights
             |> Weighted.average Vector.float
