@@ -5,6 +5,7 @@ import Array exposing (Array)
 import Maybe
 import Random
 
+import Browser
 import Html exposing (Html)
 import Html.Attributes
 import Svg exposing (Svg)
@@ -17,14 +18,14 @@ histogram
   -> Array Float -> Array Int
 histogram { min, max, buckets } samples =
   let
-      addSample sample histogram =
+      addSample sample histoSoFar =
         let
             index = floor (toFloat buckets * (sample - min) / (max - min))
         in
         Array.set
           index
-          (1 + Maybe.withDefault 0 (Array.get index histogram))
-          histogram
+          (1 + Maybe.withDefault 0 (Array.get index histoSoFar))
+          histoSoFar
   in
   Array.foldl
     addSample
@@ -75,8 +76,8 @@ randogram =
       })
     (expSamples { mean = 2, count = numSamples })
 
-init : (Model, Cmd Msg)
-init =
+init : () -> (Model, Cmd Msg)
+init () =
   ( { histo = Array.repeat 1 0, sampleMean = 0 }
   , Random.generate Set randogram
   )
@@ -92,22 +93,22 @@ view { histo, sampleMean } =
       bucketWidth = width / toFloat numBuckets
       bucket i x =
         Svg.rect
-          [ Svg.Attributes.width  (toString bucketWidth)
-          , Svg.Attributes.height (toString (x * height))
-          , Svg.Attributes.x      (toString (toFloat i * bucketWidth))
-          , Svg.Attributes.y      (toString ((1 - x) * height))
+          [ Svg.Attributes.width  (String.fromFloat bucketWidth)
+          , Svg.Attributes.height (String.fromFloat (x * height))
+          , Svg.Attributes.x      (String.fromFloat (toFloat i * bucketWidth))
+          , Svg.Attributes.y      (String.fromFloat ((1 - x) * height))
           ]
           []
       buckets =
         Array.indexedMap bucket (multogram histo) |> Array.toList
       sampleMeanText =
         Svg.text_
-          [ Svg.Attributes.x (toString (width / 2))
+          [ Svg.Attributes.x (String.fromFloat (width / 2))
           , Svg.Attributes.y "50"
           , Svg.Attributes.width  "50"
           , Svg.Attributes.height "50"
           ]
-          [ Svg.text (toString sampleMean) ]
+          [ Svg.text (String.fromFloat sampleMean) ]
   in
   Svg.svg
     [ Html.Attributes.width  width
@@ -116,7 +117,7 @@ view { histo, sampleMean } =
     (sampleMeanText :: buckets)
 
 main =
-  Html.program
+  Browser.element
     { init          = init
     , view          = view
     , update        = update
