@@ -18,8 +18,10 @@ import Cell.Integrator
 import Cell.Cycle
 import Cell.TestCard as Cell exposing (Cell)
 import Cell.Template
+import Draw
 import Help
 import Lerp
+import Tiling exposing (Tiling)
 import Timespan exposing (Timespan)
 import Vector exposing (Pt)
 
@@ -35,9 +37,6 @@ type alias Model =
   , help   : Help.Model
   }
 
-squaresWide = 13
-squaresHigh = 13
-
 splitCellsCmds : Dict Pt (Cell, Cmd Cell.Msg) -> (Dict Pt Cell, Cmd Msg)
 splitCellsCmds cells =
   ( Dict.map (\_ (cell, _) -> cell) cells
@@ -45,18 +44,14 @@ splitCellsCmds cells =
     |> Cmd.batch
   )
 
+tiling : Tiling
+tiling = Tiling.HexHex
+
 init : () -> (Model, Cmd Msg)
 init () =
   let
       (cells, cellCmd) =
-        List.concatMap (\i ->
-            List.concatMap (\j ->
-                [((i,j), Cell.init (i, j))]
-              )
-              (List.range 0 (squaresWide - 1))
-          )
-          (List.range 0 (squaresHigh - 1))
-        |> Dict.fromList
+        Tiling.allCells tiling Cell.init
         |> splitCellsCmds
 
       (help, helpCmd) = Help.init
@@ -127,51 +122,17 @@ update msg model =
 view : Model -> Html Msg
 view { cells, help } =
   let
-      squareSize = 40
-
-      colours =
-        [ (0.00, Vector.Vec3 0.00 0.00 0.00)
-        , (0.20, Vector.Vec3 0.25 0.00 0.25)
-        , (0.50, Vector.Vec3 0.75 0.00 0.00)
-        , (0.75, Vector.Vec3 1.00 1.00 0.00)
-        , (0.80, Vector.Vec3 1.00 1.00 1.00)
-        , (0.85, Vector.Vec3 1.00 1.00 1.00)
-        , (0.90, Vector.Vec3 0.00 1.00 1.00)
-        , (1.00, Vector.Vec3 0.00 0.80 1.00)
-        ] |> Array.fromList
-
-      toColour cell =
-        let
-            c f = String.fromInt (floor (255 * min (max 0 f) 1))
-            make (Vector.Vec3 r g b) =
-              "rgb(" ++ c r ++ "," ++ c g ++ "," ++ c b ++ ")"
-            value = Cell.value cell
-        in
-        -- Linearly interpolating RGB values is incorrect for interpolating
-        -- colours. Should be fine for the time being though.
-        Lerp.at (Vector.vec3 Vector.float) colours value
-        |> Maybe.withDefault (Vector.Vec3 0 0 0)
-        |> make
-
-      squareFor ((i,j), cell) =
-        Svg.rect
-          [ Svg.Attributes.width  (String.fromInt squareSize)
-          , Svg.Attributes.height (String.fromInt squareSize)
-          , Svg.Attributes.x      (String.fromInt (j * squareSize))
-          , Svg.Attributes.y      (String.fromInt (i * squareSize))
-          , Svg.Attributes.fill   (toColour cell)
-          , Svg.Events.onMouseOver (Moused True  (i, j))
-          , Svg.Events.onMouseOut  (Moused False (i, j))
-          ]
-          []
+      events (i, j) =
+        [ Svg.Events.onMouseOver (Moused True  (i, j))
+        , Svg.Events.onMouseOut  (Moused False (i, j))
+        ]
   in
   Html.div
     []
-    [ Svg.svg
-        [ Html.Attributes.width  (squaresWide * squareSize)
-        , Html.Attributes.height (squaresHigh * squareSize)
-        ]
-        (List.map squareFor (Dict.toList cells))
+    [ Draw.draw
+        tiling
+        (Dict.map (\_ c -> Cell.value c) cells)
+        { events = events }
     , Html.map Help (Help.view help)
     ]
 
