@@ -15,7 +15,8 @@ import Debug
 
 import Cell.Targeting
 import Cell.Integrator
-import Cell.Cycle as Cell exposing (Cell)
+import Cell.Cycle
+import Cell.Mean as Cell exposing (Cell)
 import Cell.TestCard
 import Cell.Template
 import Draw
