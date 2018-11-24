@@ -1,7 +1,17 @@
-module Cell.Targeting exposing (Cell, Msg, init, boost, value, step, msg)
+module Cell.Targeting exposing
+  ( Cell
+  , Msg
+  , tiling
+  , init
+  , boost
+  , value
+  , step
+  , msg
+  )
 
 import Random
 
+import Tiling exposing (Tiling)
 import Timespan exposing (Timespan)
 import Vector exposing (Pt)
 import Weighted exposing (Weighted)
@@ -18,8 +28,11 @@ type Cell = C Happiness
 
 type Msg = Target { target : Float, period : Timespan }
 
+tiling : Tiling
+tiling = Tiling.SquareSquare
+
 weights : List (Weighted Pt)
-weights = Weighted.adjacent 1 ++ Weighted.diagonal 0.5
+weights = Weighted.adjacent tiling 1 ++ Weighted.diagonal tiling 0.5
 
 vectorTarget : Vector.Space { target : Float, period : Timespan }
 vectorTarget =

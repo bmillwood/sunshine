@@ -44,14 +44,11 @@ splitCellsCmds cells =
     |> Cmd.batch
   )
 
-tiling : Tiling
-tiling = Tiling.HexHex
-
 init : () -> (Model, Cmd Msg)
 init () =
   let
       (cells, cellCmd) =
-        Tiling.allCells tiling Cell.init
+        Tiling.allCells Cell.tiling Cell.init
         |> splitCellsCmds
 
       (help, helpCmd) = Help.init
@@ -130,7 +127,7 @@ view { cells, help } =
   Html.div
     []
     [ Draw.draw
-        tiling
+        Cell.tiling
         (Dict.map (\_ c -> Cell.value c) cells)
         { events = events }
     , Html.map Help (Help.view help)

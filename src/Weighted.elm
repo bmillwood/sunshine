@@ -1,5 +1,6 @@
 module Weighted exposing (Weighted, map, average, self, adjacent, diagonal)
 
+import Tiling
 import Vector exposing (Pt)
 
 type alias Weighted a = { weight : Float, value : a }
@@ -30,20 +31,17 @@ ofPairs = List.map (\(pt, w) -> { weight = w, value = pt })
 self : Float -> List (Weighted Pt)
 self f = ofPairs [ ((0, 0), f) ]
 
-adjacent : Float -> List (Weighted Pt)
-adjacent f =
-  ofPairs
-    [ (( 0, -1), f)
-    , (( 0,  1), f)
-    , ((-1,  0), f)
-    , (( 1,  0), f)
-    ]
+ofTileCoords
+  :  (Tiling.Local -> List Pt)
+  -> Tiling.Tiling -> Float -> List (Weighted Pt)
+ofTileCoords getPairs t weight =
+  List.map
+    (\p -> (p, weight))
+    (getPairs (Tiling.local t))
+  |> ofPairs
 
-diagonal : Float -> List (Weighted Pt)
-diagonal f =
-  ofPairs
-    [ ((-1, -1), f)
-    , ((-1,  1), f)
-    , (( 1, -1), f)
-    , (( 1,  1), f)
-    ]
+adjacent : Tiling.Tiling -> Float -> List (Weighted Pt)
+adjacent = ofTileCoords Tiling.adjacent
+
+diagonal : Tiling.Tiling -> Float -> List (Weighted Pt)
+diagonal = ofTileCoords Tiling.diagonal

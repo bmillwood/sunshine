@@ -1,10 +1,20 @@
-module Cell.Cycle exposing (Cell, Msg, init, boost, value, step, msg)
+module Cell.Cycle exposing
+  ( Cell
+  , Msg
+  , tiling
+  , init
+  , boost
+  , value
+  , step
+  , msg
+  )
 
 import Array exposing (Array)
 import Random
 
 import Lerp
 import Sample
+import Tiling exposing (Tiling)
 import Timespan exposing (Timespan)
 import Vector exposing (Pt)
 import Weighted exposing (Weighted)
@@ -22,6 +32,9 @@ type Msg = Tweak Cell
 
 timeScale : Float
 timeScale = 1
+
+tiling : Tiling
+tiling = Tiling.SquareSquare
 
 value : Cell -> Float
 value (C cell) = cell.radius * sin cell.phase + cell.centre
@@ -52,12 +65,12 @@ weights fi cell =
         |> Maybe.withDefault 160
   in
   case fi of
-    Phase  -> Weighted.self 500 ++ Weighted.adjacent (v^2)
-    Speed  -> Weighted.self 40  ++ Weighted.adjacent (v^2)
+    Phase  -> Weighted.self 500 ++ Weighted.adjacent tiling (v^2)
+    Speed  -> Weighted.self 40  ++ Weighted.adjacent tiling (v^2)
     Centre ->
       Weighted.self csw
-      ++ Weighted.adjacent 1
-      ++ Weighted.diagonal 1
+      ++ Weighted.adjacent tiling 1
+      ++ Weighted.diagonal tiling 1
     Radius -> Weighted.self 1
 
 clampCell : Cell -> Cell

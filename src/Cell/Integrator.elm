@@ -1,4 +1,13 @@
-module Cell.Integrator exposing (Cell, Msg, init, boost, value, step, msg)
+module Cell.Integrator exposing
+  ( Cell
+  , Msg
+  , tiling
+  , init
+  , boost
+  , value
+  , step
+  , msg
+  )
 {-| Cells are arrays of floats, where index `i+1` is interpreted by `step` as
 the derivative of index `i`.
 
@@ -14,6 +23,7 @@ harmonic motion, with a bit of drift over time.
 import Array exposing (Array)
 import Random
 
+import Tiling exposing (Tiling)
 import Timespan exposing (Timespan)
 import Vector exposing (Pt)
 import Weighted exposing (Weighted)
@@ -24,6 +34,9 @@ type Cell = C (Array Float)
 type Msg
   = SetRand Float
   | TweakRand Float
+
+tiling : Tiling
+tiling = Tiling.SquareSquare
 
 timeScale : Float
 timeScale = 4
@@ -52,7 +65,7 @@ value : Cell -> Float
 value (C ar) = 0.5 * (Maybe.withDefault 0 (Array.get 0 ar) + 1)
 
 weights : List (Weighted Pt)
-weights = Weighted.self 4 ++ Weighted.adjacent 1
+weights = Weighted.self 4 ++ Weighted.adjacent tiling 1
 
 step : { timeStep : Timespan } -> (Pt -> Maybe Cell) -> Cell -> (Cell, Cmd Msg)
 step { timeStep } getNeighbour (C ar) =

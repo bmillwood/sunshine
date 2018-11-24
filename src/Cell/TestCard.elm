@@ -1,10 +1,23 @@
-module Cell.TestCard exposing (Cell, Msg, init, boost, value, step, msg)
+module Cell.TestCard exposing
+  ( Cell
+  , Msg
+  , tiling
+  , init
+  , boost
+  , value
+  , step
+  , msg
+  )
 
+import Tiling exposing (Tiling)
 import Timespan exposing (Timespan)
 import Vector exposing (Pt)
 
 type Cell = C Pt
 type Msg = M
+
+tiling : Tiling
+tiling = Tiling.SquareHex
 
 init : Pt -> (Cell, Cmd Msg)
 init pt =

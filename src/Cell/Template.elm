@@ -1,10 +1,23 @@
-module Cell.Template exposing (Cell, Msg, init, boost, value, step, msg)
+module Cell.Template exposing
+  ( Cell
+  , Msg
+  , tiling
+  , init
+  , boost
+  , value
+  , step
+  , msg
+  )
 
+import Tiling exposing (Tiling)
 import Timespan exposing (Timespan)
 import Vector exposing (Pt)
 
 type Cell = C
 type Msg = M
+
+tiling : Tiling
+tiling = Tiling.SquareSquare
 
 init : Pt -> (Cell, Cmd Msg)
 init (_, _) =
