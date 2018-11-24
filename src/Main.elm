@@ -15,8 +15,8 @@ import Debug
 
 import Cell.Targeting
 import Cell.Integrator
-import Cell.Cycle
-import Cell.Mean as Cell exposing (Cell)
+import Cell.Cycle as Cell exposing (Cell)
+import Cell.Mean
 import Cell.TestCard
 import Cell.Template
 import Draw
@@ -75,16 +75,19 @@ update msg model =
   case msg of
     Tick rawTimeStep ->
       let
+          mousedModel = applyMouse timeStep model
           maxSkip = Timespan.fromSeconds 0.1
           timeStep = Timespan.min rawTimeStep maxSkip
           stepCell (i,j) cell =
             Cell.step
               { timeStep = timeStep }
-              (\(di, dj) -> Dict.get (i + di, j + dj) model.cells)
+              (\(di, dj) -> Dict.get (i + di, j + dj) mousedModel.cells)
               cell
-          (newCells, cmd) = splitCellsCmds (Dict.map stepCell model.cells)
+          (newCells, cmd) =
+            splitCellsCmds
+              (Dict.map stepCell mousedModel.cells)
       in
-      ( applyMouse timeStep { model | cells = newCells }
+      ( { model | cells = newCells }
       , cmd
       )
     Moused isMoused (i, j) ->
