@@ -36,10 +36,13 @@ type Msg
   | TweakRand Float
 
 tiling : Tiling
-tiling = Tiling.SquareSquare
+tiling = Tiling.SquareHex
 
 timeScale : Float
 timeScale = 4
+
+boostScale : Float
+boostScale = 0.5
 
 tweakSize : Float
 tweakSize = 0.3
@@ -57,7 +60,7 @@ boost { timeStep } (C ar) =
   in
   Array.set
     0
-    (Maybe.withDefault 0 (Array.get 0 ar) + 5 * timeScale * seconds)
+    (Maybe.withDefault 0 (Array.get 0 ar) + boostScale * timeScale * seconds)
     ar
   |> C
 

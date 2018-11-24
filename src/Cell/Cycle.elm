@@ -34,7 +34,7 @@ timeScale : Float
 timeScale = 1
 
 tiling : Tiling
-tiling = Tiling.SquareSquare
+tiling = Tiling.HexHex
 
 value : Cell -> Float
 value (C cell) = cell.radius * sin cell.phase + cell.centre
